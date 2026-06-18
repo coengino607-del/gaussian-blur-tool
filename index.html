@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="一个类似 Photoshop 高斯模糊的本地图片处理工具。"
+    />
+    <title>Gaussian Blur Studio</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="topbar">
+        <div>
+          <p class="eyebrow">Blur Studio</p>
+          <h1>高斯模糊图片工具</h1>
+        </div>
+        <div class="actions">
+          <button class="button ghost" id="resetButton" type="button">重置</button>
+          <button class="button primary" id="downloadTopButton" type="button" disabled>
+            导出图片
+          </button>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel controls-panel">
+          <div class="panel-title">
+            <span>模糊设置</span>
+            <span class="pill" id="imageState">未上传</span>
+          </div>
+
+          <label class="field upload-field">
+            <span>图片</span>
+            <input id="fileInput" type="file" accept="image/*" />
+          </label>
+
+          <label class="drop-zone" id="dropZone">
+            <input id="dropInput" type="file" accept="image/*" />
+            <strong>拖入图片或点击上传</strong>
+            <span>支持 PNG、JPG、WebP，也可以 Ctrl+V 粘贴图片</span>
+          </label>
+
+          <button class="button ghost wide paste-button" id="pasteButton" type="button">
+            粘贴剪贴板图片
+          </button>
+
+          <div class="filter-card">
+            <div class="filter-card-head">
+              <span>Gaussian Blur</span>
+              <span class="filter-badge">Filter</span>
+            </div>
+
+            <label class="field radius-field">
+              <span>Radius <small>pixels</small></span>
+              <div class="range-row">
+                <input id="blurSlider" type="range" min="0" max="120" value="12" step="1" />
+                <input id="blurNumber" type="number" min="0" max="120" value="12" />
+              </div>
+            </label>
+
+            <div class="preset-grid" aria-label="模糊预设">
+              <button type="button" data-radius="4">轻微</button>
+              <button class="active" type="button" data-radius="12">标准</button>
+              <button type="button" data-radius="24">柔化</button>
+              <button type="button" data-radius="48">强烈</button>
+            </div>
+
+            <p class="helper-text">半径越大，细节扩散越明显。导出会按原图尺寸重新渲染。</p>
+          </div>
+
+          <label class="field">
+            <span>预览模式</span>
+            <div class="segmented">
+              <button class="active" id="processedMode" type="button">处理后</button>
+              <button id="compareMode" type="button">左右对比</button>
+            </div>
+          </label>
+
+          <label class="toggle">
+            <input id="fitToggle" type="checkbox" checked />
+            <span>适应窗口预览</span>
+          </label>
+
+          <label class="field">
+            <span>导出格式</span>
+            <div class="segmented">
+              <button class="active" id="pngFormat" type="button">PNG</button>
+              <button id="jpegFormat" type="button">JPEG</button>
+            </div>
+          </label>
+
+          <label class="field" id="qualityField">
+            <span>JPEG 质量</span>
+            <div class="range-row">
+              <input id="qualitySlider" type="range" min="40" max="100" value="92" step="1" />
+              <input id="qualityNumber" type="number" min="40" max="100" value="92" />
+            </div>
+          </label>
+        </aside>
+
+        <section class="stage-wrap">
+          <div class="stage-header">
+            <div>
+              <span class="muted">上传图片后拖动滑杆调整模糊强度。</span>
+              <strong id="stageTitle">等待图片</strong>
+            </div>
+            <span class="coordinate-tip">Gaussian Blur</span>
+          </div>
+
+          <div class="stage-outer">
+            <div class="canvas empty-canvas" id="canvasWrap">
+              <div class="empty-state" id="emptyState">
+                <strong>放入一张图片开始处理</strong>
+                <span>第一版先复刻 Photoshop 高斯模糊的核心流程。</span>
+              </div>
+              <img id="originalPreview" alt="原图预览" />
+              <img id="processedPreview" alt="模糊后预览" />
+              <div class="compare-divider" id="compareDivider"></div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel output-panel">
+          <div class="panel-title">
+            <span>输出</span>
+            <span class="pill" id="formatPill">PNG</span>
+          </div>
+
+          <div class="active-readout">
+            <span class="muted">当前参数</span>
+            <strong id="parameterReadout">Blur radius: 12px</strong>
+          </div>
+
+          <div class="meta-list">
+            <div>
+              <span>文件名</span>
+              <strong id="fileName">-</strong>
+            </div>
+            <div>
+              <span>尺寸</span>
+              <strong id="imageSize">-</strong>
+            </div>
+            <div>
+              <span>导出名</span>
+              <strong id="exportName">-</strong>
+            </div>
+            <div>
+              <span>处理方式</span>
+              <strong id="processMode">预览优化 / 原尺寸导出</strong>
+            </div>
+          </div>
+
+          <button class="button primary wide" id="downloadButton" type="button" disabled>
+            下载处理后的图片
+          </button>
+          <button class="button ghost wide" id="copySettingsButton" type="button">
+            复制参数
+          </button>
+
+          <p class="parse-message" id="message">
+            图片不会上传到服务器，所有处理都在你的浏览器里完成。可以直接 Ctrl+V 粘贴图片。
+          </p>
+        </aside>
+      </section>
+    </main>
+
+    <canvas id="workCanvas"></canvas>
+    <script src="app.js"></script>
+  </body>
+</html>
